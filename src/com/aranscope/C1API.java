@@ -53,7 +53,7 @@ public class C1API {
 
     }
 
-    public void buy(double price, Function<Double,Void> cb) {
+    public void buy(double price) {
         this.balance -= price;
         double _balance = this.balance;
         if (account.isPresent()) {

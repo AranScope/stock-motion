@@ -22,6 +22,8 @@ public class LeapPanel extends JPanel {
     DecimalFormat df = new DecimalFormat("#0.00");
     double score = 0.0;
 
+    C1API c1api;
+
     /**
      * Constructor, sets size of panel, assigns LeapMotion controller, stockList and players score.
      * @param controller
@@ -30,6 +32,9 @@ public class LeapPanel extends JPanel {
      */
     public LeapPanel(Controller controller, int width, int height) {
         super();
+
+        c1api = new C1API();
+
         this.setPreferredSize(new Dimension(width, height));
         this.screenWidth = width;
         this.screenHeight = height;
@@ -38,6 +43,8 @@ public class LeapPanel extends JPanel {
 
         stockList = new LinkedList<>();
         this.score = 1000.00;
+
+
     }
 
     public void addStock(Stock stock) {
@@ -147,7 +154,8 @@ public class LeapPanel extends JPanel {
                         heldStock.vy = hand.palmVelocity().getZ() / 20;
 
                         if (heldStock.x > 25 && heldStock.x < 425 && heldStock.y > 25 && heldStock.y < getHeight() - 25) {
-                            score += heldStock.stockValuesList.get(heldStock.valuePointer).price;
+                            sell(heldStock.stockValuesList.get(heldStock.valuePointer).price);
+
                             stockList.remove(heldStock);
                         }
                         else if(heldStock.x > getWidth() - 400 && heldStock.x < getWidth() - 25 && heldStock.y > 200 && heldStock.y < getHeight() - 25){
@@ -168,10 +176,10 @@ public class LeapPanel extends JPanel {
                             if(heldStock.x > getWidth() - 400 && heldStock.x < getWidth() - 25 && heldStock.y > 200 && heldStock.y < getHeight() - 25){
 
                                 if(heldStock.vy > 0){
-                                    score -= heldStock.stockValuesList.get(heldStock.valuePointer).price;
+                                    buy(heldStock.stockValuesList.get(heldStock.valuePointer).price);
                                 }
                             }
-                            else score -= heldStock.stockValuesList.get(heldStock.valuePointer).price;
+                            else buy(heldStock.stockValuesList.get(heldStock.valuePointer).price);
 
                             stock.vx = 0;
                             stock.vy = 0;
@@ -195,6 +203,15 @@ public class LeapPanel extends JPanel {
         g2.fillRect(0, 0, getWidth(), getHeight());
     }
 
+    public void buy(double price){
+        this.score -= price;
+        c1api.buy(price);
+    }
+
+    public void sell(double price){
+        this.score += price;
+        c1api.sell(price);
+    }
 
     /**
      * Draw the stock 'orbs'
