@@ -1,0 +1,22 @@
+<<------------Stock Ninja------------>>
+<<----------------------------------->>
+
+>> Desktop App
+>> Rendered to Occulus Rift
+>> Leap Motion for Slicing
+>> Transform data from Bloomberg into 'fruit' of
+   differing velocities, which are fired at the 
+   player in a parabola from a point on a 2D
+   Hyperplane fixed infront of the player 
+   (at a fixed distance), perpendicular both to 
+   the ground and to the player's line of sight.
+
+
+
+<<---------Occulus Rift---------->>
+
+>> 
+<<OLD IDEA ABOVE ^^^^^^^^^>>
+<<-------------------------------------------------------------------->>
+
+<<----------Stock Rider---------->>
