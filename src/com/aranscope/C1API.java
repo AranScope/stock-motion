@@ -8,7 +8,6 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Random;
-import java.util.function.Function;
 
 /**
  * @author Jack Wearden <jack@jackwearden.co.uk>
@@ -108,6 +107,10 @@ public class C1API {
     }
 
     private class C1Account {
+        public C1Account() {
+
+        }
+
         public String _id;
         public String type;
         public String nickname;
@@ -118,6 +121,11 @@ public class C1API {
     }
 
     private class C1Purchase {
+
+        public C1Purchase() {
+
+        }
+
         public C1Purchase(String payer, double a) {
             this.payer_id = payer;
             this.amount = a;
@@ -133,6 +141,11 @@ public class C1API {
     }
 
     private class C1Deposit {
+
+        public C1Deposit() {
+
+        }
+
         public C1Deposit(double a) {
             this.amount = a;
         }
