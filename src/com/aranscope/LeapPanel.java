@@ -22,12 +22,20 @@ public class LeapPanel extends JPanel {
     DecimalFormat df = new DecimalFormat("#0.00");
     double score = 0.0;
 
+    /**
+     * Constructor, sets size of panel, assigns LeapMotion controller, stockList and players score.
+     * @param controller
+     * @param width
+     * @param height
+     */
     public LeapPanel(Controller controller, int width, int height) {
         super();
         this.setPreferredSize(new Dimension(width, height));
-        this.controller = controller;
         this.screenWidth = width;
         this.screenHeight = height;
+
+        this.controller = controller;
+
         stockList = new LinkedList<>();
         this.score = 1000.00;
     }
@@ -38,61 +46,64 @@ public class LeapPanel extends JPanel {
 
     int stockUpdate = 0;
 
+    /**
+     * Update method, runs once per tick, adds or removes stocks based on position relative to players hand.
+     */
     public void update() {
-        this.hands = controller.frame().hands();
-        this.fingers = controller.frame().fingers();
+        this.hands = controller.frame().hands(); //get hand data from latest leap motion frame.
+        this.fingers = controller.frame().fingers(); //get finger data from latest leap motion frame.
 
 
         for (int x = 0; x < stockList.size(); x++) {
             Stock stock = stockList.get(x);
 
-            if (stockUpdate > 100) {
+            if (stockUpdate > 100) { //stocks update once per 100 program ticks. (Moving to next day).
                 stock.update();
                 stockUpdate = 0;
             }
-            stockUpdate++;
-            if (stock.y > getHeight() + stock.d / 2) {
-                stockList.remove(stock);
+            stockUpdate++; //iterate stock update counter.
+            if (stock.y > getHeight() + stock.d / 2) { //if stock is past the bottom of the screen.
+                stockList.remove(stock); //remove the stock from the panel.
                 x--;
             } else {
-                stock.x += stock.vx;
-                stock.y += stock.vy;
+                stock.x += stock.vx; //increment stock x position by stock x velocity.
+                stock.y += stock.vy; //increment stock y position by stock y velocity.
             }
         }
 
-        repaint();
+        repaint(); //repaint once per update.
     }
 
+    /**
+     * Draw all graphical data to the LeapPanel.
+     * @param g
+     */
     @Override
     public void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.clearRect(0, 0, getWidth(), getHeight());
-        screenWidth = getWidth();
-        screenHeight = getHeight();
 
-        g2.setFont(new Font("Seruf", Font.PLAIN, 20));
-        g2.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.clearRect(0, 0, getWidth(), getHeight()); //clear screen before drawing.
 
-        drawBackground(g2);
+        screenWidth = getWidth(); //set width to account for resizing of window.
+        screenHeight = getHeight(); //set height to account for resizing of window.
 
-        drawScore(g2);
+        g2.setFont(new Font("Seruf", Font.PLAIN, 20)); //setting default font for all visual elements.
+        g2.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)); //setting default stroke for all visual elements.
 
-        drawHold(g2);
+        drawBackground(g2); //draw the background of the visualiser.
+
+        drawScore(g2); //draw the score of the player.
+
+        drawHold(g2); //draw the 'hold' location for stocks.
 
         if (heldStock != null) {
-            drawHud(g2);
+            drawBuy(g2); //draw the 'buy' location for stocks.
         }
 
-        drawHands(g2);
+        drawHands(g2); //draw the location of the hands of the player.
 
-        drawStocks(g2);
-
-
-
-
-
-
+        drawStocks(g2); //draw the stock orbs.
 //        if(grab()){
 //            g2.setColor(Color.red);
 //        }
@@ -111,10 +122,12 @@ public class LeapPanel extends JPanel {
 //                g2.fillOval(fingerPoint.x - 10, fingerPoint.y - 10, 20, 20);
 //            }
 //        }
-
-
     }
 
+    /**
+     * Draw the hand(s) of the player.
+     * @param g2
+     */
     public void drawHands(Graphics2D g2) {
         boolean grab = grab();
         if (grab) {
@@ -173,12 +186,20 @@ public class LeapPanel extends JPanel {
         }
     }
 
+    /**
+     * Draw the background of the visualisation.
+     * @param g2
+     */
     public void drawBackground(Graphics2D g2) {
         g2.setColor(Color.decode("0x2C3E50"));
         g2.fillRect(0, 0, getWidth(), getHeight());
     }
 
 
+    /**
+     * Draw the stock 'orbs'
+     * @param g2
+     */
     public void drawStocks(Graphics2D g2) {
         FontMetrics fm = g2.getFontMetrics();
 
@@ -188,7 +209,6 @@ public class LeapPanel extends JPanel {
 
             g2.setColor(Color.decode("0xffffff"));
             g2.draw(stock.getDrawable());
-
 
             g2.drawString(stock.name, (int) (stock.x - fm.stringWidth(stock.name) / 2), (int) (stock.y + fm.getAscent() / 2));
 
@@ -200,7 +220,11 @@ public class LeapPanel extends JPanel {
 
     }
 
-    public void drawHud(Graphics2D g2) {
+    /**
+     * Draw the buy area for stocks.
+     * @param g2
+     */
+    public void drawBuy(Graphics2D g2) {
         if (heldStock.x > 25 && heldStock.x < 425 && heldStock.y > 25 && heldStock.y < getHeight() - 25) {
             g2.setColor(new Color(255, 0, 0, 200));
             g2.fillRoundRect(25, 25, 400, getHeight() - 50, 25, 25);
@@ -221,6 +245,10 @@ public class LeapPanel extends JPanel {
         g2.drawString(sell, 25 + 200 - fm.stringWidth(sell) / 2, getHeight() / 2 + fm.getAscent() / 2);
     }
 
+    /**
+     * Draw the score of the player.
+     * @param g2
+     */
     public void drawScore(Graphics2D g2) {
         g2.setColor(new Color(0, 255, 0, 40));
         int width = 400;
@@ -229,7 +257,6 @@ public class LeapPanel extends JPanel {
         g2.setColor(new Color(255, 255, 255, 40));
         g2.drawRoundRect(getWidth() - width - 25, 25, width, height, 25, 25);
 
-
         String playerScore = "Score: £" + df.format(score);
 
         g2.setColor(Color.white);
@@ -237,6 +264,10 @@ public class LeapPanel extends JPanel {
         g2.drawString(playerScore, getWidth() - width/2 - 25- fm.stringWidth(playerScore) / 2, 25 + height / 2 + fm.getAscent() / 2);
     }
 
+    /**
+     * Draw the 'hold' area for stocks.
+     * @param g2
+     */
     public void drawHold(Graphics2D g2){
         int width = 400;
         int height = getHeight() - 225;
@@ -269,6 +300,10 @@ public class LeapPanel extends JPanel {
 
     }
 
+    /**
+     * Check whether the player is currently grabbing a stock orb.
+     * @return
+     */
     public boolean grab() {
         if (hands != null) {
             for (Hand hand : hands) {
@@ -285,6 +320,11 @@ public class LeapPanel extends JPanel {
         return false;
     }
 
+    /**
+     * Scale LeapMotion vector space to 2D paintComponent space.
+     * @param position
+     * @return
+     */
     public Point scale(Vector position) {
         controller.frame().interactionBox().center();
         float leapWidth = controller.frame().interactionBox().width();
@@ -296,6 +336,10 @@ public class LeapPanel extends JPanel {
     private Player mp3Player;
     private Thread playerThread;
 
+    /**
+     * Play sound effect (not working on Ubuntu 14.04 as of 29/11/15).
+     * @param filepath
+     */
     public void playMp3(String filepath) {
         try {
             FileInputStream file = new FileInputStream(filepath);

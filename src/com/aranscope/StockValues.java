@@ -19,6 +19,10 @@ public class StockValues {
         return "Date: " + date + "\nPrice: £" + price + "\nHigh: £" + high + "\nLow: £" + low + "\nChange: £" + change;
     }
 
+    /**
+     * Parse stock data from csv line.
+     * @param data
+     */
     public void parseData(String data){
         String[] values = data.split(",");
         try {
