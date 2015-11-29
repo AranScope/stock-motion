@@ -1,6 +1,8 @@
 package com.aranscope;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.mashape.unirest.http.ObjectMapper;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -8,6 +10,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Scanner;
 
 /**
  * @author Jack Wearden <jack@jackwearden.co.uk>
@@ -19,45 +22,71 @@ public class C1API {
     private Optional<C1Account> account = Optional.empty();
     private String key;
 
-    private double balance = 5000;
+    private int balance = 5000;
 
     public C1API() {
-        this.key = System.getenv("C1APIKEY");
+        this.key = new Scanner(System.in).nextLine();
         prepUnirest();
-        try {
-            this.account = Optional.of(
-                    Unirest.post(C1AccountsUrl(C1_CUSTOMER_ID))
-                    .queryString("key", key)
-                    .field("type", "Credit Card")
-                    .field("nickname", "Account")
-                    .field("rewards", 0)
-                    .field("balance", this.balance)
-                    .field("account_number", this.uuid())
-                    .asObject(C1Account.class)
-                    .getBody()
-            );
-        } catch (UnirestException e) {
 
+        try {
+            C1Account a = new C1Account();
+            a.account_number = uuid();
+            a.balance = this.balance;
+            a.rewards = 0;
+            a.nickname = "Account";
+            a.type = "Credit Card";
+            C1AccountCreateResponse body =
+                    Unirest.post(C1AccountsUrl(C1_CUSTOMER_ID))
+                            .header("Content-Type", "application/json")
+                            .queryString("key", key)
+                            .body(a)
+                            .asObject(C1AccountCreateResponse.class)
+                            .getBody();
+
+            if (body.objectCreated == null) {
+                System.out.println(body.code);
+                System.out.println(body.message);
+                System.out.print("[");
+                for (String s : body.culprit) {
+                    System.out.print(s + ", ");
+                }
+                System.out.println("]");
+                throw new Error(body.message);
+            } else {
+                this.account = Optional.of(body.objectCreated);
+            };
+        } catch (UnirestException e) {
+            e.printStackTrace();
         }
     }
 
-    public void sell(double price) {
+    public void sell(int price) {
         this.balance += price;
         double _balance = this.balance;
 
         if (account.isPresent()) {
             C1Deposit d = new C1Deposit(price);
-            Unirest.post(C1DepositUrl(account.get()._id)).body(d);
+            Unirest
+                    .post(C1DepositUrl(account.get()._id))
+                    .header("Content-Type", "application/json")
+                    .queryString("key", key)
+                    .body(d)
+                    .asStringAsync();
         }
 
     }
 
-    public void buy(double price) {
+    public void buy(int price) {
         this.balance -= price;
         double _balance = this.balance;
         if (account.isPresent()) {
             C1Purchase p = new C1Purchase(account.get()._id, price);
-            Unirest.post(C1PurchaseUrl(account.get()._id)).body(p);
+            Unirest
+                    .post(C1PurchaseUrl(account.get()._id))
+                    .header("Content-Type", "application/json")
+                    .queryString("key", key)
+                    .body(p)
+                    .asStringAsync();
         }
     }
 
@@ -106,27 +135,43 @@ public class C1API {
         });
     }
 
-    private class C1Account {
-        public C1Account() {
+    public static class C1AccountCreateResponse {
+        @JsonCreator
+        public C1AccountCreateResponse () {
 
         }
 
+        public int code;
+        public String message;
+        public String fields;
+        public String[] culprit;
+        public C1Account objectCreated;
+    }
+
+    @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
+    public static class C1Account {
+        @JsonCreator
+        public C1Account() {
+
+        }
+        @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
         public String _id;
         public String type;
         public String nickname;
         public int rewards;
         public int balance;
         public String account_number;
+        @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
         public String customer_id;
     }
 
-    private class C1Purchase {
-
+    public class C1Purchase {
+        @JsonCreator
         public C1Purchase() {
 
         }
 
-        public C1Purchase(String payer, double a) {
+        public C1Purchase(String payer, int a) {
             this.payer_id = payer;
             this.amount = a;
         }
@@ -134,14 +179,14 @@ public class C1API {
         public String merchant_id = LSE_MERCHANT_ID;
         public String payer_id;
         public String purchase_date = "2015-11-29";
-        public double amount;
+        public int amount;
         public String status = "pending";
         public String medium = "balance";
         public String description = "Trades";
     }
 
-    private class C1Deposit {
-
+    public static class C1Deposit {
+        @JsonCreator
         public C1Deposit() {
 
         }
@@ -149,6 +194,7 @@ public class C1API {
         public C1Deposit(double a) {
             this.amount = a;
         }
+
         public String medium = "balance";
         public String transaction_date = "2015-11-29";
         public String status = "pending";

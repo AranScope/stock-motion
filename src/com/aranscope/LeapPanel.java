@@ -205,12 +205,12 @@ public class LeapPanel extends JPanel {
 
     public void buy(double price){
         this.score -= price;
-        c1api.buy(price);
+        c1api.buy((int) (price * 100));
     }
 
     public void sell(double price){
         this.score += price;
-        c1api.sell(price);
+        c1api.sell((int) (price * 100));
     }
 
     /**
